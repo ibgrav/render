@@ -65,7 +65,8 @@ export class Component {
       <!DOCTYPE html>
       <html>
         <head>
-          <title></title>
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Render</title>
           ${this.reactApps.length > 0 ? await reactScripts() : ""}
         </head>
         <body>
