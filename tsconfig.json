@@ -5,6 +5,8 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "baseUrl": "."
+    "resolveJsonModule": false,
+    "baseUrl": ".",
+    "outDir": "build"
   }
 }

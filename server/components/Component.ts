@@ -1,10 +1,13 @@
+import { getEnv } from "../library/getEnv";
+
 interface ReactApp {
   id: string;
   name: string;
-  state?: Record<string, any>;
+  props?: Record<string, any>;
 }
 
 export class Component {
+  env = getEnv();
   reactApps: ReactApp[] = [];
 
   constructor() {
@@ -23,17 +26,15 @@ export class Component {
     return this.html``;
   }
 
-  react(options: ReactApp) {
+  react(options: ReactApp, rootTag = "div") {
     this.reactApps.push(options);
+    return `<${rootTag} id="${options.id}"></${rootTag}>`;
   }
 
   async sendPage(initialState: Record<string, any>) {
     const body = await this.render(initialState);
 
-    const reactScripts = () => /*html*/ `
-      <script>
-        window.SS_REACT_APPS = ${JSON.stringify(this.reactApps)}
-      </script>
+    const reactDevScripts = () => /*html*/ `
       <script type="module">
         import RefreshRuntime from 'http://localhost:3000/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
@@ -45,12 +46,27 @@ export class Component {
       <script type="module" src="http://localhost:3000/client/main.jsx"></script>
     `;
 
+    const reactProdScripts = async () => {
+      //@ts-ignore
+      const manifest = await import("../../dist/manifest.json");
+      return /*html*/ `
+        <script type="module" src="/${manifest?.["client/main.jsx"]?.file}"></script>
+      `;
+    };
+
+    const reactScripts = async () => /*html*/ `
+      <script>
+        window.SS_REACT_APPS = ${JSON.stringify(this.reactApps)}
+      </script>
+      ${this.env.IS_DEV ? reactDevScripts() : await reactProdScripts()}
+    `;
+
     return /*html*/ `
       <!DOCTYPE html>
       <html>
         <head>
           <title></title>
-          ${this.reactApps.length > 0 ? reactScripts() : ""}
+          ${this.reactApps.length > 0 ? await reactScripts() : ""}
         </head>
         <body>
           ${body}
