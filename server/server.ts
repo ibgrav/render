@@ -11,6 +11,7 @@ export async function createServer(env = getEnv()) {
     server.register(fastifyStatic, {
       root: path.join(process.cwd(), "dist/assets"),
       prefix: "/assets/",
+      maxAge: 1000 * 60 * 60 * 24 * 30 * 12, //cache for a year
     });
   }
 
