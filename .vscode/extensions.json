@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "visualstudioexptteam.vscodeintellicode",
+    "ms-azuretools.vscode-docker",
+    "esbenp.prettier-vscode",
+    "johnsoncodehk.volar"
+  ]
+}
