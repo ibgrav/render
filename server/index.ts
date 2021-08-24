@@ -1,4 +1,4 @@
-import { createServer } from "./createServer";
+import { createServer } from "./server";
 
 createServer().then(({ env, server }) => {
   server.listen(env.PORT, "0.0.0.0", () => {

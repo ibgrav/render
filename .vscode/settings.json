@@ -11,6 +11,9 @@
   "[jsx]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[Typescript React]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
