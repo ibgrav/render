@@ -1,5 +1,5 @@
 import React from "react";
 
 export default function Simple({ message = "" }) {
-  return <div>Another message: {message}</div>;
+  return <div>This is React. Another message: {message}</div>;
 }
