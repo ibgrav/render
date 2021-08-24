@@ -1,13 +1,13 @@
 import path from "path";
 import { defineConfig } from "vite";
-import reactRefresh from "@vitejs/plugin-react-refresh";
+import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
-  plugins: [reactRefresh()],
+  plugins: [vue()],
   build: {
     manifest: true,
     rollupOptions: {
-      input: path.resolve(process.cwd(), "client/main.jsx"),
+      input: path.resolve(process.cwd(), "client/main.js"),
     },
   },
 });
