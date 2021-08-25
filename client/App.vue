@@ -1,23 +1,17 @@
 <template>
   <h2 id="app">Vue!</h2>
-  <component v-if="Boolean(components[name])" :is="components[name]" v-bind="props" />
-  <component v-else :is="components['missing']" :name="name" />
+  <teleport v-for="{ id, name, props } in apps" :key="id" :to="`#${id}`">
+    <component v-if="Boolean(getComponent(name))" :is="getComponent(name)" v-bind="props" />
+    <component v-else :is="getComponent('missing')" :name="name" />
+  </teleport>
 </template>
 
-<script setup>
-import { defineAsyncComponent } from "vue";
+<script setup lang="ts">
+import type { SS_VUE_APP } from "./main";
+import { getComponent } from "./resolve";
 
-const { name, props } = defineProps({
-  name: String,
-  props: {},
-});
-
-const components = {
-  missing: defineAsyncComponent(() => import("./components/Missing.vue")),
-  one: defineAsyncComponent(() => import("./components/One.vue")),
-  two: defineAsyncComponent(() => import("./components/Two.vue")),
-  three: defineAsyncComponent(() => import("./components/Three.vue")),
-};
+const { apps } = defineProps<{ apps: SS_VUE_APP[] }>();
+console.log({ apps });
 </script>
 
 <style>

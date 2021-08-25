@@ -1,7 +1,7 @@
-import { FastifyInstance, RegisterOptions, DoneFuncWithErrOrRes } from "fastify";
+import { FastifyInstance } from "fastify";
 import { Page } from "./components/page";
 
-export function router(server: FastifyInstance, _opts: RegisterOptions, done: DoneFuncWithErrOrRes) {
+export async function router(server: FastifyInstance) {
   server.get("/*", async (req, reply) => {
     const page = new Page();
 
@@ -10,6 +10,4 @@ export function router(server: FastifyInstance, _opts: RegisterOptions, done: Do
     const initialState = { url: req.url, test: true };
     return await page.sendPage(initialState);
   });
-
-  done();
 }

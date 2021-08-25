@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     manifest: true,
     rollupOptions: {
-      input: path.resolve(process.cwd(), "client/main.js"),
+      input: path.resolve(process.cwd(), "client/main.ts"),
     },
   },
 });

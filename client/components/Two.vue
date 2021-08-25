@@ -3,6 +3,6 @@
   <pre>{{ JSON.stringify({ props }, null, 2) }}</pre>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({ message: String });
 </script>

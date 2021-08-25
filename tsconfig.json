@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "ESNext",
+    "allowJs": false,
+    "target": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
     "alwaysStrict": true,
     "noImplicitAny": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "moduleResolution": "Node",
-    "resolveJsonModule": false,
-    "baseUrl": ".",
-    "outDir": "build",
-    "allowJs": false
+    "lib": ["esnext", "dom"]
   }
 }

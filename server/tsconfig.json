@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2020",
+    "baseUrl": ".",
+    "outDir": "../build",
+    "moduleResolution": "node",
+    "lib": ["esnext"],
+    "strict": true,
+    "allowJs": false,
+    "sourceMap": false,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": false,
+    "esModuleInterop": true
+  }
+}

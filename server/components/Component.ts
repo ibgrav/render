@@ -1,8 +1,9 @@
 import { getEnv } from "../library/getEnv";
+import { vueComponents } from "./vue";
 
 interface VueApp {
   id: string;
-  name: string;
+  name: keyof typeof vueComponents;
   props?: Record<string, any>;
 }
 
@@ -36,15 +37,43 @@ export class Component {
 
     const vueDevScripts = () => /*html*/ `
       <script type="module" src="http://localhost:3000/@vite/client"></script>
-      <script type="module" src="http://localhost:3000/client/main.js"></script>
+      <script type="module" src="http://localhost:3000/client/main.ts"></script>
     `;
 
     const vueProdScripts = async () => {
       //@ts-ignore
       const manifest = await import("../../dist/manifest.json");
-      return /*html*/ `
-        <script type="module" src="/${manifest?.["client/main.js"]?.file}"></script>
-      `;
+
+      const preload = (href: string) => `<link rel="modulepreload" href="${href}">`;
+
+      if (manifest) {
+        const mainFile = manifest?.["client/main.ts"] || {};
+        const mainSrc = `/${mainFile.file}`;
+
+        const preloads = [preload(mainSrc)];
+
+        const imports = mainFile.imports?.map((name: string) => preload(`/${manifest[name]?.file}`) || "");
+        preloads.push(...imports);
+
+        const appPreloads = this.vueApps.map(({ name }) => {
+          const path = vueComponents[name];
+          if (path) {
+            const key = `client/components/${path}`;
+            const href = manifest?.[key]?.file;
+            if (href) return preload(`/${href}`);
+            return `<script>console.error("MISSING MANIFEST COMPONENT KEY ${key}")</script>`;
+          }
+          return `<script>console.error("MISSING VUE COMPONENT NAME ${name}")</script>`;
+        });
+        preloads.push(...appPreloads);
+
+        return /*html*/ `
+          ${preloads.join("\n")}
+          <script type="module" src="${mainSrc}"></script>
+        `;
+      }
+
+      return `<script>console.error("MISSING MANIFEST")</script>`;
     };
 
     const vueScripts = async () => /*html*/ `
@@ -63,6 +92,7 @@ export class Component {
           ${this.vueApps.length > 0 ? await vueScripts() : ""}
         </head>
         <body>
+          ${this.vueApps.length > 0 ? '<div id="vue-main"></div>' : ""}
           ${body}
         </body>
       </html>
