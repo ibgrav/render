@@ -69,6 +69,7 @@ export class Component {
         <head>
           <meta name="viewport" content="width=device-width,initial-scale=1">
           <title>Render</title>
+          <link rel="stylesheet" href="${this.env.IS_DEV ? `http://localhost:3000` : ""}/assets/styles/critical.css">
           ${this.appScrips.length > 0 ? windowAppScripts : ""}
           ${this.vueApps.length > 0 ? windowVueApps : ""}
           ${await headScripts()}
