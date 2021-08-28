@@ -94,10 +94,10 @@ function preloadScripts(
   const entry: { file: string; imports: string[] } = manifest?.[`${componentPath}${entryFileName}`];
   if (!entry) return `<script>console.error("MISSING MANIFEST")</script>`;
 
-  const preload = (href: string) => {
+  const preload = (href: string, rel: string = "modulepreload", as: string = "") => {
     if (!srcs.has(href)) {
       srcs.add(href);
-      return `<link rel="modulepreload" href="${href}">`;
+      return `<link rel="${rel}" href="${href}", ${as}>`;
     }
     return "";
   };
@@ -112,9 +112,12 @@ function preloadScripts(
     const path = components[name];
     if (path) {
       const key = `${componentPath}${path}`;
-      const href = manifest?.[key]?.file;
-      if (href) return preload(`/${href}`);
-      return `<script>console.error("MISSING MANIFEST COMPONENT KEY ${key}")</script>`;
+      const item = manifest?.[key];
+      if (!item) return `<script>console.error("MISSING MANIFEST COMPONENT KEY ${key}")</script>`;
+
+      let preloads = preload(`/${item.file}`);
+      if (item.css) item.css.forEach((href: string) => (preloads += preload(`/${href}`, "preload", `as="style"`)));
+      return preloads;
     }
     return `<script>console.error("MISSING VUE COMPONENT NAME ${name}")</script>`;
   });
