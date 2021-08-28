@@ -5,9 +5,11 @@
     "dev": "concurrently npm:dev:vite npm:dev:server",
     "dev:server": "nodemon -r dotenv/config -e ts -w server -w components -w library server/index.ts",
     "dev:vite": "vite",
+    "dev:sass": "sass styles:public/assets/styles --watch",
     "build:vite": "vue-tsc --noEmit && vite build",
     "build:server": "tsc --project server/tsconfig.json",
-    "build": "rimraf build dist && npm run build:vite && npm run build:server",
+    "build:sass": "sass --style=compressed styles:public/assets/styles",
+    "build": "rimraf build dist public/assets/styles && npm run build:sass && npm run build:vite && npm run build:server",
     "start": "node build/index.js"
   },
   "dependencies": {
@@ -15,15 +17,16 @@
     "fastify-static": "^4.2.3"
   },
   "devDependencies": {
-    "@types/node": "^16.7.1",
+    "@types/node": "^16.7.4",
     "@vitejs/plugin-vue": "^1.6.0",
     "@vue/compiler-sfc": "^3.2.6",
     "concurrently": "^6.2.1",
     "dotenv": "^10.0.0",
     "nodemon": "^2.0.12",
     "rimraf": "^3.0.2",
+    "sass": "^1.38.2",
     "ts-node": "^10.2.1",
-    "typescript": "^4.3.5",
+    "typescript": "^4.4.2",
     "vite": "^2.5.1",
     "vue": "^3.2.6",
     "vue-tsc": "^0.3.0"

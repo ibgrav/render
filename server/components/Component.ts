@@ -1,15 +1,11 @@
 import { getEnv } from "../library/getEnv";
+import { scriptComponents } from "./scripts";
 import { vueComponents } from "./vue";
-
-interface VueApp {
-  id: string;
-  name: keyof typeof vueComponents;
-  props?: Record<string, any>;
-}
 
 export class Component {
   env = getEnv();
-  vueApps: VueApp[] = [];
+  vueApps: HBS.VueApp[] = [];
+  appScrips: HBS.AppScript[] = [];
 
   constructor() {
     return this;
@@ -27,7 +23,12 @@ export class Component {
     return this.html``;
   }
 
-  vue(options: VueApp, rootTag = "div") {
+  script(options: HBS.AppScript) {
+    this.appScrips.push(options);
+  }
+
+  vue(options: HBS.VueApp, rootTag = "div") {
+    if (!options.id) options.id = `vue-${options.name}-${Math.floor(Math.random() * 100000) + 1}`;
     this.vueApps.push(options);
     return `<${rootTag} id="${options.id}"></${rootTag}>`;
   }
@@ -35,53 +36,32 @@ export class Component {
   async sendPage(initialState: Record<string, any>) {
     const body = await this.render(initialState);
 
-    const vueDevScripts = () => /*html*/ `
-      <script type="module" src="http://localhost:3000/@vite/client"></script>
-      <script type="module" src="http://localhost:3000/client/main.ts"></script>
-    `;
+    const viteDevScript = `<script type="module" src="http://localhost:3000/@vite/client"></script>`;
+    const vueDevScripts = `<script type="module" src="http://localhost:3000/client/vue/main.ts"></script>`;
+    const scriptsDevScript = `<script type="module" src="http://localhost:3000/client/scripts/main.ts"></script>`;
 
-    const vueProdScripts = async () => {
-      //@ts-ignore
-      const manifest = await import("../../dist/manifest.json");
+    const headScripts = async (): Promise<string> => {
+      if (this.vueApps.length > 0 || this.appScrips.length > 0) {
+        if (this.env.IS_DEV) {
+          return viteDevScript + scriptsDevScript + vueDevScripts;
+        }
 
-      const preload = (href: string) => `<link rel="modulepreload" href="${href}">`;
+        //@ts-ignore
+        const manifest = (await import("../../dist/manifest.json")) as Record<string, any>;
 
-      if (manifest) {
-        const mainFile = manifest?.["client/main.ts"] || {};
-        const mainSrc = `/${mainFile.file}`;
+        if (manifest) {
+          const srsc: Set<string> = new Set();
+          const appPreloads = preloadScripts(srsc, manifest, "client/scripts/", "main.ts", scriptComponents, this.appScrips);
+          const vuePreloads = preloadScripts(srsc, manifest, "client/vue/", "main.ts", vueComponents, this.vueApps);
 
-        const preloads = [preload(mainSrc)];
-
-        const imports = mainFile.imports?.map((name: string) => preload(`/${manifest[name]?.file}`) || "");
-        preloads.push(...imports);
-
-        const appPreloads = this.vueApps.map(({ name }) => {
-          const path = vueComponents[name];
-          if (path) {
-            const key = `client/components/${path}`;
-            const href = manifest?.[key]?.file;
-            if (href) return preload(`/${href}`);
-            return `<script>console.error("MISSING MANIFEST COMPONENT KEY ${key}")</script>`;
-          }
-          return `<script>console.error("MISSING VUE COMPONENT NAME ${name}")</script>`;
-        });
-        preloads.push(...appPreloads);
-
-        return /*html*/ `
-          ${preloads.join("\n")}
-          <script type="module" src="${mainSrc}"></script>
-        `;
+          return appPreloads + vuePreloads;
+        }
       }
-
-      return `<script>console.error("MISSING MANIFEST")</script>`;
+      return "";
     };
 
-    const vueScripts = async () => /*html*/ `
-      <script>
-        window.SS_VUE_APPS = ${JSON.stringify(this.vueApps)}
-      </script>
-      ${this.env.IS_DEV ? vueDevScripts() : await vueProdScripts()}
-    `;
+    const windowVueApps = `<script>window.__VUE_APPS__ = ${JSON.stringify(this.vueApps)}</script>`;
+    const windowAppScripts = `<script>window.__APP_SCRIPTS__ = ${JSON.stringify(this.appScrips)}</script>`;
 
     return /*html*/ `
       <!DOCTYPE html>
@@ -89,7 +69,9 @@ export class Component {
         <head>
           <meta name="viewport" content="width=device-width,initial-scale=1">
           <title>Render</title>
-          ${this.vueApps.length > 0 ? await vueScripts() : ""}
+          ${this.appScrips.length > 0 ? windowAppScripts : ""}
+          ${this.vueApps.length > 0 ? windowVueApps : ""}
+          ${await headScripts()}
         </head>
         <body>
           ${this.vueApps.length > 0 ? '<div id="vue-main"></div>' : ""}
@@ -98,4 +80,47 @@ export class Component {
       </html>
     `;
   }
+}
+
+function preloadScripts(
+  srcs: Set<string>,
+  manifest: Record<string, any>,
+  componentPath: string,
+  entryFileName: string,
+  components: Record<string, string>,
+  props: HBS.AppScript[] | HBS.VueApp[]
+) {
+  const entry: { file: string; imports: string[] } = manifest?.[`${componentPath}${entryFileName}`];
+  if (!entry) return `<script>console.error("MISSING MANIFEST")</script>`;
+
+  const preload = (href: string) => {
+    if (!srcs.has(href)) {
+      srcs.add(href);
+      return `<link rel="modulepreload" href="${href}">`;
+    }
+    return "";
+  };
+
+  const mainSrc = `/${entry.file}`;
+  const preloads = [preload(mainSrc)];
+
+  const imports = entry.imports?.map((name: string) => preload(`/${manifest[name]?.file}`));
+  preloads.push(...imports);
+
+  const appPreloads = props.map(({ name }) => {
+    const path = components[name];
+    if (path) {
+      const key = `${componentPath}${path}`;
+      const href = manifest?.[key]?.file;
+      if (href) return preload(`/${href}`);
+      return `<script>console.error("MISSING MANIFEST COMPONENT KEY ${key}")</script>`;
+    }
+    return `<script>console.error("MISSING VUE COMPONENT NAME ${name}")</script>`;
+  });
+  preloads.push(...appPreloads);
+
+  return /*html*/ `
+    ${preloads.join("\n")}
+    <script type="module" src="${mainSrc}"></script>
+  `;
 }

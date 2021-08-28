@@ -1,0 +1,48 @@
+@use "sass:math";
+
+.container {
+  max-width: 1220px;
+  margin: auto;
+}
+
+.row {
+  display: flex;
+  flex-flow: row;
+}
+
+.span-debug {
+  outline: 1px solid red;
+}
+
+.span {
+  width: auto;
+}
+
+$count: 12;
+@for $i from 1 through $count {
+  .span#{$i} {
+    width: percentage(math.div($i, $count));
+  }
+}
+
+@media screen and (max-width: 649px) {
+  .row {
+    flex-flow: column;
+  }
+
+  .span,
+  .span1,
+  .span2,
+  .span3,
+  .span4,
+  .span5,
+  .span6,
+  .span7,
+  .span8,
+  .span9,
+  .span10,
+  .span11,
+  .span12 {
+    width: 100%;
+  }
+}

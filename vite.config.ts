@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     manifest: true,
     rollupOptions: {
-      input: path.resolve(process.cwd(), "client/main.ts"),
+      input: [path.resolve(process.cwd(), "client/vue/main.ts"), path.resolve(process.cwd(), "client/scripts/main.ts")],
     },
   },
 });

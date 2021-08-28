@@ -1,6 +1,8 @@
 export const vueComponents: Record<string, string> = {
-  one: "One.vue",
-  two: "Two.vue",
-  three: "Three.vue",
-  missing: "Missing.vue",
+  one: "components/One.vue",
+  two: "components/Two.vue",
+  three: "components/Three.vue",
+  missing: "components/Missing.vue",
+  video: "components/Video.vue",
+  test: "components/Test.vue",
 };

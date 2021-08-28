@@ -12,6 +12,7 @@
     "alwaysStrict": true,
     "noImplicitAny": true,
     "resolveJsonModule": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "typeRoots": ["../types"]
   }
 }
